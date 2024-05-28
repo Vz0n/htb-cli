@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -60,13 +61,13 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 
 	config.GlobalConfig.Logger.Info(fmt.Sprintf("User subscription: %s", userSubscription))
 
-	// isActive := utils.CheckVPN()
-	// if !isActive {
+	//isActive := utils.CheckVPN()
+	//if !isActive {
 	// 	isConfirmed := utils.AskConfirmation("No active VPN has been detected. Would you like to start it ?", batchParam)
 	// 	if isConfirmed {
 	// 		utils.StartVPN(config.BaseDirectory + "/lab_QU35T3190.ovpn")
 	// 	}
-	// }
+	//}
 
 	var url string
 	var jsonData []byte
@@ -109,12 +110,12 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 		s.Suffix = " Waiting for the machine to start in order to fetch the IP address (this might take a while)."
 		s.Start()
 		defer s.Stop()
-		timeout := time.After(10 * time.Minute)
+		timeout := time.After(5 * time.Minute)
 	LoopRelease:
 		for {
 			select {
 			case <-timeout:
-				fmt.Println("Timeout (10 min) ! Exiting")
+				fmt.Println("Timeout (5 min) ! Exiting")
 				s.Stop()
 				return "", nil
 			default:
@@ -135,12 +136,12 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 		s.Suffix = " Waiting for the machine to start in order to fetch the IP address (this might take a while)."
 		s.Start()
 		defer s.Stop()
-		timeout := time.After(10 * time.Minute)
+		timeout := time.After(5 * time.Minute)
 	Loop:
 		for {
 			select {
 			case <-timeout:
-				fmt.Println("Timeout (10 min) ! Exiting")
+				fmt.Println("Timeout (5 min) ! Exiting")
 				s.Stop()
 				return "", nil
 			default:
@@ -158,10 +159,17 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	default:
 		// Get IP address from active machine
 		activeMachineData, err := utils.GetInformationsFromActiveMachine()
+
 		if err != nil {
 			return "", err
 		}
-		ip = activeMachineData["ip"].(string)
+
+		// TODO: Check for https://github.com/GoToolSharing/htb-cli/issues/119
+		if activeMachineData["ip"] != nil {
+			ip = activeMachineData["ip"].(string)
+		} else {
+			return "", errors.New("no ip has been returned from api, check status or wait before starting")
+		}
 	}
 	tts := time.Since(startTime)
 	message = fmt.Sprintf("%s\nTarget: %s\nTime to spawn was %s !", message, ip, tts)

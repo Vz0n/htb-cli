@@ -354,13 +354,22 @@ func GetActiveReleaseArenaMachineIP() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	data := ParseJsonMessage(resp, "data")
+
+	data := ParseJsonMessage(resp, "data").(map[string]interface{})
+
 	if data == nil {
 		return "", err
 	}
-	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Relase arena active machine informations: %v", data))
 
-	return fmt.Sprintf("%v", data.(map[string]interface{})["ip"].(string)), nil
+	ip := data["ip"]
+
+	if ip == nil {
+		return "", errors.New("no ip has been returned from api, check status or wait before starting")
+	}
+
+	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Relase arena active machine information: %v", data))
+
+	return fmt.Sprintf("%v", ip.(string)), nil
 }
 
 // HtbRequest makes an HTTP request to the Hackthebox API
