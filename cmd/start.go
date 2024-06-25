@@ -168,7 +168,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 		if activeMachineData["ip"] != nil {
 			ip = activeMachineData["ip"].(string)
 		} else {
-			return "", errors.New("no ip has been returned from api, check status or wait before starting")
+			return "", errors.New("no ip has been returned, check status or slowdown actions")
 		}
 	}
 	tts := time.Since(startTime)

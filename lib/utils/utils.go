@@ -364,7 +364,7 @@ func GetActiveReleaseArenaMachineIP() (string, error) {
 	ip := data["ip"]
 
 	if ip == nil {
-		return "", errors.New("no ip has been returned from api, check status or wait before starting")
+		return "", errors.New("no ip has been returned, check status or slowdown actions")
 	}
 
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Relase arena active machine information: %v", data))
