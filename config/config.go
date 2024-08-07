@@ -27,7 +27,7 @@ var homeDir = os.Getenv("HOME")
 
 var BaseDirectory = homeDir + "/.local/htb-cli"
 
-const HostHackTheBox = "labs.hackthebox.com"
+const HostHackTheBox = "www.hackthebox.com"
 
 const BaseHackTheBoxAPIURL = "https://" + HostHackTheBox + "/api/v4"
 

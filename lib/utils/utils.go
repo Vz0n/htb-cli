@@ -103,7 +103,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Machine name: %s", machines[0].Value))
 			isConfirmed := AskConfirmation("The following machine was found : " + machines[0].Value)
 			if isConfirmed {
-				return machines[0].ID, nil
+				return fmt.Sprint(machines[0].ID), nil
 			}
 			os.Exit(0)
 		case map[string]interface{}:
@@ -122,7 +122,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Machine name: %s", machines["0"].Value))
 			isConfirmed := AskConfirmation("The following machine was found : " + machines["0"].Value)
 			if isConfirmed {
-				return machines["0"].ID, nil
+				return fmt.Sprint(machines["0"].ID), nil
 			}
 			os.Exit(0)
 		default:

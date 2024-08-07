@@ -1,7 +1,7 @@
 package utils
 
 type Machine struct {
-	ID    string `json:"id"`
+	ID    int16  `json:"id"`
 	Value string `json:"value"`
 }
 
