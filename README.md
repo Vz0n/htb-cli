@@ -19,9 +19,13 @@
 </div>
 
 <div align="center">
-  <img src="./assets/logo.png" alt="Alt text" width="400">
+  <img src="./assets/logo.png" alt="Logo" width="400">
 </div></br>
 
 # Official Documentation
 
 The official documentation for htb-cli is hosted on Github Pages and can be accessed via the following link: <a href="https://htb-cli-documentation.qu35t.pw/" target="_blank">https://htb-cli-documentation.qu35t.pw/</a>
+
+## Additional comment from Vz0n
+
+I just forked this project to fix bugs that never were fixed in the upstream, but now that the project seems a bit abandoned (7 months after the last commit), maybe i'll do something else... just maybe.
