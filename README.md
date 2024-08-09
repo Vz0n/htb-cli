@@ -28,4 +28,4 @@ The official documentation for htb-cli is hosted on Github Pages and can be acce
 
 ## Additional comment from Vz0n
 
-I just forked this project to fix bugs that never were fixed in the upstream, but now that the project seems a bit abandoned (7 months after the last commit), maybe i'll do something else... just maybe.
+I just forked this project to fix bugs that never were fixed in the upstream, but now that the project seems a bit abandoned (7 months since last commit), maybe i'll do something else... just maybe.
