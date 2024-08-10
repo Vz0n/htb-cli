@@ -256,9 +256,9 @@ func GetMachineType(machine_id interface{}) (string, error) {
 		return "", err
 	}
 	info := ParseJsonMessage(resp, "info").(map[string]interface{})
-	if info["active"].(float64) == 1 {
+	if info["active"].(bool) {
 		return "active", nil
-	} else if info["retired"].(float64) == 1 {
+	} else if info["retired"].(bool) {
 		return "retired", nil
 	}
 	return "", errors.New("error: machine type not found")
