@@ -17,8 +17,9 @@ func Check(newVersion string) (string, error) {
 		return "Development version", nil
 	}
 
-	// Main version
-	githubVersion := "https://api.github.com/repos/GoToolSharing/htb-cli/releases/latest"
+	// Just let this be more flexible.
+	repo := "Vz0n/htb-cli"
+	githubVersion := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", repo)
 
 	resp, err := utils.HTTPRequest(http.MethodGet, githubVersion, nil)
 	if err != nil {
@@ -31,8 +32,8 @@ func Check(newVersion string) (string, error) {
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("release.TagName : %s", release.TagName))
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("config.Version : %s", config.Version))
 	var message string
-	if release.TagName != config.Version {
-		message = fmt.Sprintf("A new update is now available ! (%s)\nUpdate with : go install github.com/GoToolSharing/htb-cli@latest", release.TagName)
+	if release.TagName != config.Version && release.TagName != "" {
+		message = fmt.Sprintf("A new update is now available ! (%s)\nUpdate with : go install github.com/%s@latest", release.TagName, repo)
 	} else {
 		message = fmt.Sprintf("You're up to date ! (%s)", config.Version)
 	}
