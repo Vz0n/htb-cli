@@ -147,7 +147,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Challenge name: %s", challenges[0].Value))
 			isConfirmed := AskConfirmation("The following challenge was found : " + challenges[0].Value)
 			if isConfirmed {
-				return challenges[0].ID, nil
+				return fmt.Sprint(challenges[0].ID), nil
 			}
 			os.Exit(0)
 		case map[string]interface{}:
@@ -166,7 +166,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Challenge name: %s", challenges["0"].Value))
 			isConfirmed := AskConfirmation("The following challenge was found : " + challenges["0"].Value)
 			if isConfirmed {
-				return challenges["0"].ID, nil
+				return fmt.Sprint(challenges["0"].ID), nil
 			}
 			os.Exit(0)
 		default:
@@ -191,7 +191,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Username value: %s", usernames[0].Value))
 			isConfirmed := AskConfirmation("The following username was found : " + usernames[0].Value)
 			if isConfirmed {
-				return usernames[0].ID, nil
+				return fmt.Sprint(usernames[0].ID), nil
 			}
 			os.Exit(0)
 		case map[string]interface{}:
@@ -210,7 +210,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Username value: %s", usernames["0"].Value))
 			isConfirmed := AskConfirmation("The following username was found : " + usernames["0"].Value)
 			if isConfirmed {
-				return usernames["0"].ID, nil
+				return fmt.Sprint(usernames["0"].ID), nil
 			}
 			os.Exit(0)
 		default:
