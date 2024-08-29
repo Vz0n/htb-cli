@@ -203,7 +203,7 @@ func coreInfoCmd(machineName []string, challengeName []string, usernameName []st
 
 // getMachineStatus returns machine status
 func getMachineStatus(data map[string]interface{}) string {
-	if data["retired"].(float64) == 0 {
+	if !data["retired"].(bool) {
 		return "No"
 	}
 	return "Yes"
