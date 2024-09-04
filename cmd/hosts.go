@@ -1,60 +1,62 @@
 package cmd
 
 import (
+	"fmt"
+
 	"os"
 
-	"github.com/GoToolSharing/htb-cli/config"
 	"github.com/GoToolSharing/htb-cli/lib/hosts"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
 var hostsCmd = &cobra.Command{
 	Use:   "hosts",
 	Short: "Interact with hosts file",
-	Run: func(cmd *cobra.Command, args []string) {
-		config.GlobalConfig.Logger.Info("Hosts command executed")
-		addParam, err := cmd.Flags().GetString("add")
+	Long:  "Add or remove names of your hosts file.",
+	Run:   coreHostsCmd,
+}
+
+func coreHostsCmd(cmd *cobra.Command, args []string) {
+
+	ipParam, _ := cmd.Flags().GetString("ip")
+	newHostname, _ := cmd.Flags().GetString("add")
+	deleteHostname, _ := cmd.Flags().GetString("delete")
+	// A bit of boolean boilerplate tho
+	bothFlagsDefined := (newHostname != "" && deleteHostname != "")
+
+	if ipParam == "" || (newHostname == "" && deleteHostname == "") {
+		fmt.Println("Usage: htb-cli hosts [--add|--delete] <hostname> --ip <ip>")
+		fmt.Println("Use \"htb-cli help hosts\" for more information.")
+		return
+	}
+
+	if bothFlagsDefined {
+		fmt.Println("You can't use both add and delete flag at the same time.")
+		return
+	}
+
+	if newHostname != "" {
+		fmt.Printf("Adding host %s to your hosts file...\n", newHostname)
+		err := hosts.AddEntryToHosts(ipParam, newHostname)
+
 		if err != nil {
-			config.GlobalConfig.Logger.Error("", zap.Error(err))
+			fmt.Printf("error: %s\n", err)
 			os.Exit(1)
 		}
 
-		deleteParam, err := cmd.Flags().GetString("delete")
+		return
+	} else {
+		fmt.Printf("Removing host %s from your hosts file...\n", deleteHostname)
+		err := hosts.RemoveEntryFromHosts(ipParam, deleteHostname)
+
 		if err != nil {
-			config.GlobalConfig.Logger.Error("", zap.Error(err))
+			fmt.Printf("error: %s\n", err)
 			os.Exit(1)
 		}
 
-		ipParam, err := cmd.Flags().GetString("ip")
-		if err != nil {
-			config.GlobalConfig.Logger.Error("", zap.Error(err))
-			os.Exit(1)
-		}
+		return
+	}
 
-		if addParam != "" && deleteParam != "" {
-			config.GlobalConfig.Logger.Error("Only one parameter is allowed")
-			os.Exit(1)
-		}
-
-		if addParam != "" {
-			err = hosts.AddEntryToHosts(ipParam, addParam)
-			if err != nil {
-				config.GlobalConfig.Logger.Error("", zap.Error(err))
-				os.Exit(1)
-			}
-		}
-
-		if deleteParam != "" {
-			err = hosts.RemoveEntryFromHosts(ipParam, deleteParam)
-			if err != nil {
-				config.GlobalConfig.Logger.Error("", zap.Error(err))
-				os.Exit(1)
-			}
-		}
-
-		config.GlobalConfig.Logger.Info("Exit hosts command correctly")
-	},
 }
 
 func init() {

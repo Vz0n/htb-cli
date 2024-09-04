@@ -11,6 +11,7 @@ import (
 )
 
 // SendToDiscord sends a message to a Discord channel using a webhook URL.
+// From Vz0n: Why this ever exists?
 func SendToDiscord(command string, message string) error {
 	if config.ConfigFile["Discord"] == "False" {
 		return nil

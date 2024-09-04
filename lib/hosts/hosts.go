@@ -3,9 +3,9 @@ package hosts
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -40,11 +40,23 @@ func readHostsFile(processLine func(string) (string, bool)) (string, bool, error
 }
 
 func updateHostsFile(newContent string) error {
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("echo '%s' | sudo tee /etc/hosts > /dev/null", newContent))
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	isRoot := os.Getenv("USER") == "root"
+
+	if !isRoot {
+		return errors.New("you must run htb-cli as root to use this function")
+	}
+
+	file, err := os.OpenFile(hostsFile, os.O_RDWR|os.O_TRUNC, os.FileMode(0755))
+
+	if err != nil {
+		return err
+	}
+
+	// Just write to the file and close it, nothing else.
+	file.WriteString(newContent)
+	file.Close()
+
+	return nil
 }
 
 func AddEntryToHosts(ip string, host string) error {
@@ -76,14 +88,14 @@ func AddEntryToHosts(ip string, host string) error {
 	}
 
 	if !ipFound {
-		newContent = strings.TrimSpace(newContent) + "\n" + ip + " " + host
+		newContent = strings.TrimSpace(newContent) + "\n" + ip + " " + host + "\n"
 		hostAdded = true
 	} else {
 		hostAdded = changeMade
 	}
 
 	if hostAdded {
-		if err := updateHostsFile(strings.TrimSpace(newContent)); err != nil {
+		if err := updateHostsFile(newContent); err != nil {
 			return err
 		}
 		fmt.Println("Entry successfully updated or added.")
@@ -128,7 +140,7 @@ func RemoveEntryFromHosts(ip string, host string) error {
 	}
 
 	if changeMade {
-		newContent = strings.TrimSpace(newContent)
+		newContent = strings.TrimSpace(newContent) + "\n" // Keep the end of file newline
 		if err := updateHostsFile(newContent); err != nil {
 			return err
 		}
