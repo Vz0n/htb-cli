@@ -19,12 +19,12 @@ var hostsCmd = &cobra.Command{
 func coreHostsCmd(cmd *cobra.Command, args []string) {
 
 	ipParam, _ := cmd.Flags().GetString("ip")
-	newHostname, _ := cmd.Flags().GetString("add")
+	addHostname, _ := cmd.Flags().GetString("add")
 	deleteHostname, _ := cmd.Flags().GetString("delete")
 	// A bit of boolean boilerplate tho
-	bothFlagsDefined := (newHostname != "" && deleteHostname != "")
+	bothFlagsDefined := (addHostname != "" && deleteHostname != "")
 
-	if ipParam == "" || (newHostname == "" && deleteHostname == "") {
+	if ipParam == "" || (addHostname == "" && deleteHostname == "") {
 		fmt.Println("Usage: htb-cli hosts [--add|--delete] <hostname> --ip <ip>")
 		fmt.Println("Use \"htb-cli help hosts\" for more information.")
 		return
@@ -35,9 +35,9 @@ func coreHostsCmd(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if newHostname != "" {
-		fmt.Printf("Adding host %s to your hosts file...\n", newHostname)
-		err := hosts.AddEntryToHosts(ipParam, newHostname)
+	if addHostname != "" {
+		fmt.Printf("Adding host %s to your hosts file...\n", addHostname)
+		err := hosts.AddEntryToHosts(ipParam, addHostname)
 
 		if err != nil {
 			fmt.Printf("error: %s\n", err)

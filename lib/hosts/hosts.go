@@ -11,6 +11,10 @@ import (
 
 const hostsFile = "/etc/hosts"
 
+// TODO: The logic for reading-writing the file is improvisable; this just reads the entire
+// file, updates the string with its content and writes it back, truncating all the file with the
+// new content.
+
 func readHostsFile(processLine func(string) (string, bool)) (string, bool, error) {
 	file, err := os.Open(hostsFile)
 	if err != nil {
