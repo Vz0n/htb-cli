@@ -9,14 +9,14 @@
 *.dylib
 .idea
 
-# Test and debug binary, built with `go test -c`
+# Test and debug binary
 *.test
 __debug*
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
+# Dependency and editor-created directories
 vendor/
 .vscode/
 
