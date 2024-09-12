@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -78,27 +76,17 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	//if !isActive {
 	// 	isConfirmed := utils.AskConfirmation("No active VPN has been detected. Would you like to start it ?", batchParam)
 	// 	if isConfirmed {
-	// 		utils.StartVPN(config.BaseDirectory + "/lab_QU35T3190.ovpn")
+	//
 	// 	}
 	//}
 
 	var url string
 	var jsonData []byte
 
-	switch {
-	case machineType == "release":
-		url = config.BaseHackTheBoxAPIURL + "/arena/start"
-		jsonData = []byte("{}")
-	case userSubscription == "vip" || userSubscription == "vip+":
-		url = config.BaseHackTheBoxAPIURL + "/vm/spawn"
-		jsonData, err = json.Marshal(map[string]string{"machine_id": machineID})
-		if err != nil {
-			return "", fmt.Errorf("failed to create JSON data: %w", err)
-		}
-	default:
-		url = config.BaseHackTheBoxAPIURL + "/machine/play/" + machineID
-		jsonData = []byte("{}")
-	}
+	// TODO: Check for the new release arena endpoint
+	// TODO 2: Check for https://github.com/GoToolSharing/htb-cli/issues/119
+	url = config.BaseHackTheBoxAPIURL + "/vm/spawn"
+	jsonData = []byte(fmt.Sprintf("{\"machine_id\":\"%s\"}", machineID))
 
 	resp, err := utils.HtbRequest(http.MethodPost, url, jsonData)
 	if err != nil {
@@ -108,10 +96,6 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	message, ok := utils.ParseJsonMessage(resp, "message").(string)
 	if !ok {
 		return "", fmt.Errorf("unexpected response format")
-	}
-
-	if strings.Contains(message, "You must stop") {
-		return message, nil
 	}
 
 	ip := "Undefined"
@@ -177,7 +161,6 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 			return "", err
 		}
 
-		// TODO: Check for https://github.com/GoToolSharing/htb-cli/issues/119
 		if activeMachineData["ip"] != nil {
 			ip = activeMachineData["ip"].(string)
 		} else {

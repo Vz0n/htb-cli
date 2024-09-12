@@ -1,3 +1,7 @@
+# Temporal note about Release arena and VIP+ machine spawning
+
+HackTheBox has changed their API endpoints to spawn machines, for now it works for spawning machines on free servers, but i don't know if it will on VIP or Release Arena servers. I need to test.  
+
 # htb-cli
 
 ![Workflows (main)](https://github.com/GoToolSharing/htb-cli/actions/workflows/go.yml/badge.svg?branch=main)

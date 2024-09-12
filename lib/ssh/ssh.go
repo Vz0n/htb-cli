@@ -2,7 +2,8 @@ package ssh
 
 import (
 	"fmt"
-	"path/filepath"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/GoToolSharing/htb-cli/config"
@@ -10,118 +11,113 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func Connect(username, password, host string, port int) (*ssh.Client, error) {
+func Connect(username, password, host string, port int, private_key string) (*ssh.Client, string, error) {
+
+	var priv_key ssh.Signer
 	config := &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
+		User:            username,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	connection, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
-	if err != nil {
-		return nil, fmt.Errorf("Connection error: %s\n", err)
-	}
-	fmt.Println("SSH connection established")
 
-	return connection, nil
+	if private_key != "" {
+
+		file, err := os.OpenFile(private_key, os.O_RDONLY, 0755)
+		key_bytes, err2 := io.ReadAll(file)
+
+		if err != nil || err2 != nil {
+			return nil, "", fmt.Errorf("errors while reading file: %s/%s", err, err2)
+		}
+
+		signer, err := ssh.ParsePrivateKey(key_bytes)
+
+		if err != nil {
+			return nil, "", fmt.Errorf("error parsing key: %s", err)
+		}
+
+		priv_key = signer
+		config.Auth = []ssh.AuthMethod{
+			ssh.PublicKeys(priv_key),
+		}
+
+	} else {
+		config.Auth = []ssh.AuthMethod{
+			ssh.Password(password),
+		}
+	}
+
+	connection, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
+
+	if err != nil {
+		return nil, "", fmt.Errorf("error: %s", err)
+	}
+
+	// Get hostname of the machine at the same time, as it will be used later.
+	hostname, _ := getHostname(connection)
+
+	fmt.Printf("SSH connection established with machine: %s\n", hostname)
+	return connection, hostname, nil
 }
 
-func GetUserFlag(connection *ssh.Client) (string, error) {
+func GetFlag(connection *ssh.Client) (string, error) {
 	session, err := connection.NewSession()
 	if err != nil {
-		return "", fmt.Errorf("Session creation error: %s\n", err)
+		return "", fmt.Errorf("error creating session: %s", err)
 	}
 	defer session.Close()
 
-	cmd := "cat /etc/passwd | grep -E '/home|/users' | cut -d: -f6"
-	output, err := session.CombinedOutput(cmd)
-	if err != nil {
-		return "", fmt.Errorf("Error during command execution: %s\n", err)
-	}
-	homes := strings.Split(string(output), "\n")
-	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Users homes : %v", homes))
+	if connection.User() != "root" {
+		// Get the user flag if we aren't root
+		cmd := "cat user.txt"
+		out, err := session.CombinedOutput(cmd)
 
-	fileFound := false
-	for _, home := range homes {
-		if home == "" {
-			continue
-		}
-		filePath := filepath.Join(home, "user.txt")
-		fileSession, err := connection.NewSession()
 		if err != nil {
-			fmt.Printf("Error creating file session: %s\n", err)
-			continue
+			return "", fmt.Errorf("error executing command: %s", err)
 		}
-		cmd := fmt.Sprintf("if [ -f %s ]; then echo found; else echo not found; fi", filePath)
-		fileOutput, err := fileSession.CombinedOutput(cmd)
+
+		flag := string(out)
+
+		if len(flag) != 32 {
+			return "", fmt.Errorf("invalid flag contents: %s", flag)
+		}
+
+		return strings.ReplaceAll(flag, "\n", ""), nil
+	} else {
+		// Get the root flag
+		cmd := "cat root.txt"
+		out, err := session.CombinedOutput(cmd)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error executing command: %s", err)
 		}
-		fileSession.Close()
 
-		if strings.TrimSpace(string(fileOutput)) == "found" {
-			fileFound = true
-			config.GlobalConfig.Logger.Debug(fmt.Sprintf("User flag found: %s\n", filePath))
+		flag := strings.ReplaceAll(string(out), "\n", "")
 
-			contentSession, err := connection.NewSession()
-			if err != nil {
-				fmt.Printf("Error creating content session: %s\n", err)
-				continue
-			}
-			contentCmd := fmt.Sprintf("cat %s", filePath)
-			contentOutput, err := contentSession.CombinedOutput(contentCmd)
-			if err != nil {
-				fmt.Printf("File read error %s: %s\n", filePath, err)
-				permSession, err := connection.NewSession()
-				if err != nil {
-					fmt.Printf("Error creating permissions session: %s\n", err)
-					continue
-				}
-				permCmd := fmt.Sprintf("ls -la %s", filePath)
-				permOutput, err := permSession.CombinedOutput(permCmd)
-				if err != nil {
-					fmt.Printf("Error obtaining permissions: %s\n", err)
-				} else {
-					fmt.Printf("Permissions required: %s\n", string(permOutput))
-				}
-				permSession.Close()
-				continue
-			}
-			fmt.Printf("%s: %s\n", filePath, string(contentOutput))
-			if len(contentOutput) == 32 || len(contentOutput) == 33 {
-				config.GlobalConfig.Logger.Info("HTB flag detected")
-				return (string(contentOutput)), nil
-			}
-			contentSession.Close()
-			break
+		if len(flag) != 32 {
+			return "", fmt.Errorf("invalid flag contents: %s", flag)
 		}
-	}
 
-	if !fileFound {
-		fmt.Println("user.txt file not found in home directories")
+		return flag, nil
 	}
-	return "", nil
 }
 
-func GetHostname(connection *ssh.Client) (string, error) {
+func getHostname(connection *ssh.Client) (string, error) {
 	hostnameSession, err := connection.NewSession()
-	if err != nil {
-		return "", fmt.Errorf("Error creating hostname session: %s\n", err)
-	}
-	cmd := "hostname"
-	sessionOutput, err := hostnameSession.CombinedOutput(cmd)
+
 	if err != nil {
 		return "", err
 	}
+
+	sessionOutput, err := hostnameSession.CombinedOutput("hostname")
+
+	if err != nil {
+		return "", err
+	}
+
 	hostnameSession.Close()
-	hostname := strings.ReplaceAll(string(sessionOutput), "\n", "")
-	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Hotname: %s", hostname))
-	return hostname, nil
+	return strings.ReplaceAll(string(sessionOutput), "\n", ""), nil
 }
 
 func BuildSubmitStuff(hostname string, userFlag string) (string, map[string]string, error) {
-	// Can be release arena or machine
+
 	var payload map[string]string
 	var url string
 

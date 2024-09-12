@@ -14,25 +14,16 @@ import (
 
 var (
 	releaseAPI = fmt.Sprintf("%s/arena/stop", config.BaseHackTheBoxAPIURL)
-	vipAPI     = fmt.Sprintf("%s/vm/terminate", config.BaseHackTheBoxAPIURL)
-	defaultAPI = fmt.Sprintf("%s/machine/stop", config.BaseHackTheBoxAPIURL)
+	defaultAPI = fmt.Sprintf("%s/vm/terminate", config.BaseHackTheBoxAPIURL)
 )
 
 // buildMachineStopRequest constructs the URL endpoint and JSON data payload for stopping a machine based on its type and user's subscription.
-func buildMachineStopRequest(machineType string, userSubscription string, machineID string) (string, []byte) {
+// TODO: Check the new api endpoint for VIP users
+func buildMachineStopRequest(machineType string, _ string, machineID string) (string, []byte) {
 	var apiEndpoint string
 	var jsonData []byte
 
-	if machineType == "release" {
-		return releaseAPI, []byte(`{}`)
-	}
-
-	switch userSubscription {
-	case "vip", "vip+":
-		apiEndpoint = vipAPI
-	default:
-		apiEndpoint = defaultAPI
-	}
+	apiEndpoint = defaultAPI
 
 	jsonData = []byte(fmt.Sprintf(`{"machine_id": "%s"}`, machineID))
 	return apiEndpoint, jsonData

@@ -19,6 +19,7 @@ func SubmitFlag(url string, payload map[string]string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create JSON data: %w", err)
 	}
+
 	resp, err := utils.HtbRequest(http.MethodPost, url, jsonData)
 	if err != nil {
 		return "", err
