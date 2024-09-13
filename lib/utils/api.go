@@ -18,18 +18,16 @@ func ParseAndFormatDate(input string) (string, error) {
 
 // SetStatus determines the status based on user and root flags.
 func SetStatus(data map[string]interface{}) string {
-	userFlag, userFlagExists := data["authUserInUserOwns"].(bool)
-	rootFlag, rootFlagExists := data["authUserInRootOwns"].(bool)
+	userFlag, _ := data["authUserInUserOwns"].(bool)
+	rootFlag, _ := data["authUserInRootOwns"].(bool)
 
 	switch {
-	case !userFlagExists && !rootFlagExists:
-		return "No flags"
 	case userFlag && !rootFlag:
 		return "User flag"
 	case !userFlag && rootFlag:
 		return "Root flag"
 	case userFlag && rootFlag:
-		return "User & Root"
+		return "Pwned"
 	default:
 		return "No flags"
 	}
