@@ -337,14 +337,9 @@ func displayActiveMachine(header string) error {
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("User subscription: %s", userSubscription))
 
 	ip := "Undefined"
-	_ = ip
+
 	switch {
-	case machineType == "release":
-		ip, err = utils.GetActiveReleaseArenaMachineIP()
-		if err != nil {
-			return err
-		}
-	case userSubscription == "vip+":
+	case machineType == "release" || userSubscription == "vip+":
 		ip, err = utils.GetActiveMachineIP()
 		if err != nil {
 			return err

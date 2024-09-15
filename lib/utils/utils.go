@@ -325,8 +325,14 @@ func GetReleaseArenaExpiredTime() (string, error) {
 	}
 	data := info.(map[string]interface{})
 	playInfo := data["play_info"].(map[string]interface{})
-	expiresAt := playInfo["expires_at"].(string)
-	return expiresAt, nil
+
+	if playInfo["expires_at"] == nil {
+		// Just return the actual date if there is no expiry time, will be threated as
+		// if it was zero.
+		return time.Now().Format("2006-01-02 15:04:05"), nil
+	} else {
+		return playInfo["expires_at"].(string), nil
+	}
 }
 
 // GetActiveMachineIP returns the ip of the active machine
@@ -345,31 +351,6 @@ func GetActiveMachineIP() (string, error) {
 		return ipValue, nil
 	}
 	return "Undefined", nil
-}
-
-// GetActiveReleaseArenaMachineIP returns the ip of the active release arena machine
-func GetActiveReleaseArenaMachineIP() (string, error) {
-	url := fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
-	resp, err := HtbRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return "", err
-	}
-
-	data := ParseJsonMessage(resp, "data").(map[string]interface{})
-
-	if data == nil {
-		return "", err
-	}
-
-	ip := data["ip"]
-
-	if ip == nil {
-		return "", errors.New("no ip has been returned, check status or slowdown actions")
-	}
-
-	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Relase arena active machine information: %v", data))
-
-	return fmt.Sprintf("%v", ip.(string)), nil
 }
 
 // HtbRequest makes an HTTP request to the Hackthebox API

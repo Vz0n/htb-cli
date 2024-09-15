@@ -83,8 +83,6 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	var url string
 	var jsonData []byte
 
-	// TODO: Check for the new release arena endpoint
-	// TODO 2: Check for https://github.com/GoToolSharing/htb-cli/issues/119
 	url = config.BaseHackTheBoxAPIURL + "/vm/spawn"
 	jsonData = []byte(fmt.Sprintf("{\"machine_id\":\"%s\"}", machineID))
 
@@ -94,8 +92,13 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	}
 
 	message, ok := utils.ParseJsonMessage(resp, "message").(string)
+
 	if !ok {
 		return "", fmt.Errorf("unexpected response format")
+	}
+
+	if message == "You must wait 1 minute between machine actions." {
+		return "Please slowdown and wait 1 minute between machine actions.", nil
 	}
 
 	ip := "Undefined"
@@ -116,7 +119,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 				s.Stop()
 				return "", nil
 			default:
-				ip, err = utils.GetActiveReleaseArenaMachineIP()
+				ip, err = utils.GetActiveMachineIP()
 				if err != nil {
 					return "", err
 				}
@@ -164,7 +167,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 		if activeMachineData["ip"] != nil {
 			ip = activeMachineData["ip"].(string)
 		} else {
-			return "", errors.New("no ip has been returned, check status or slowdown actions")
+			return "", errors.New("no ip has been returned, check status")
 		}
 	}
 	tts := time.Since(startTime)
