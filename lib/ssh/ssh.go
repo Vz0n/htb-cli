@@ -80,7 +80,7 @@ func GetFlag(connection *ssh.Client) (string, error) {
 			return "", fmt.Errorf("invalid flag contents: %s", flag)
 		}
 
-		return strings.ReplaceAll(flag, "\n", ""), nil
+		return flag, nil
 	} else {
 		// Get the root flag
 		cmd := "cat root.txt"
