@@ -74,7 +74,7 @@ func GetFlag(connection *ssh.Client) (string, error) {
 			return "", fmt.Errorf("error executing command: %s", err)
 		}
 
-		flag := string(out)
+		flag := strings.ReplaceAll(string(out), "\n", "")
 
 		if len(flag) != 32 {
 			return "", fmt.Errorf("invalid flag contents: %s", flag)
