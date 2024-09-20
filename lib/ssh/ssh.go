@@ -65,10 +65,9 @@ func GetFlag(connection *ssh.Client) (string, error) {
 	}
 	defer session.Close()
 
-	if connection.User() != "root" {
-		// Get the user flag if we aren't root
-		cmd := "cat user.txt"
-		out, err := session.CombinedOutput(cmd)
+	if connection.User() == "root" {
+		// Get the root flag if we are root
+		out, err := session.CombinedOutput("cat root.txt")
 
 		if err != nil {
 			return "", fmt.Errorf("error executing command: %s", err)
@@ -77,14 +76,12 @@ func GetFlag(connection *ssh.Client) (string, error) {
 		flag := strings.ReplaceAll(string(out), "\n", "")
 
 		if len(flag) != 32 {
-			return "", fmt.Errorf("invalid flag contents: %s", flag)
+			return "", fmt.Errorf("error getting root flag: %s", flag)
 		}
 
 		return flag, nil
 	} else {
-		// Get the root flag
-		cmd := "cat root.txt"
-		out, err := session.CombinedOutput(cmd)
+		out, err := session.CombinedOutput("cat user.txt")
 		if err != nil {
 			return "", fmt.Errorf("error executing command: %s", err)
 		}
@@ -92,7 +89,7 @@ func GetFlag(connection *ssh.Client) (string, error) {
 		flag := strings.ReplaceAll(string(out), "\n", "")
 
 		if len(flag) != 32 {
-			return "", fmt.Errorf("invalid flag contents: %s", flag)
+			return "", fmt.Errorf("error getting user flag: %s", flag)
 		}
 
 		return flag, nil
@@ -131,6 +128,7 @@ func BuildSubmitStuff(hostname string, userFlag string) (string, map[string]stri
 	}
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Machine Type: %s", machineType))
 
+	// TODO: Check if they are still the same
 	if machineType == "release" {
 		url = config.BaseHackTheBoxAPIURL + "/arena/own"
 		payload = map[string]string{
