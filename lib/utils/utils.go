@@ -58,7 +58,7 @@ func GetHTBToken() (string, error) {
 	var htbToken = os.Getenv(envName)
 
 	if htbToken == "" {
-		return "", fmt.Errorf("environment variable is not set : %v\n", envName)
+		return "", fmt.Errorf("environment variable is not set: %v", envName)
 	}
 
 	parts := strings.Split(htbToken, ".")
@@ -101,7 +101,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			}
 			config.GlobalConfig.Logger.Info("Machine found")
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Machine name: %s", machines[0].Value))
-			isConfirmed := AskConfirmation("The following machine was found : " + machines[0].Value)
+			isConfirmed := AskConfirmation("The following machine was found: " + machines[0].Value)
 			if isConfirmed {
 				return fmt.Sprint(machines[0].ID), nil
 			}
@@ -120,7 +120,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			}
 			config.GlobalConfig.Logger.Info("Machine found")
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Machine name: %s", machines["0"].Value))
-			isConfirmed := AskConfirmation("The following machine was found : " + machines["0"].Value)
+			isConfirmed := AskConfirmation("The following machine was found: " + machines["0"].Value)
 			if isConfirmed {
 				return fmt.Sprint(machines["0"].ID), nil
 			}
@@ -145,7 +145,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			}
 			config.GlobalConfig.Logger.Info("Challenge found")
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Challenge name: %s", challenges[0].Value))
-			isConfirmed := AskConfirmation("The following challenge was found : " + challenges[0].Value)
+			isConfirmed := AskConfirmation("The following challenge was found: " + challenges[0].Value)
 			if isConfirmed {
 				return fmt.Sprint(challenges[0].ID), nil
 			}
@@ -164,7 +164,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			}
 			config.GlobalConfig.Logger.Info("Challenge found")
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Challenge name: %s", challenges["0"].Value))
-			isConfirmed := AskConfirmation("The following challenge was found : " + challenges["0"].Value)
+			isConfirmed := AskConfirmation("The following challenge was found: " + challenges["0"].Value)
 			if isConfirmed {
 				return fmt.Sprint(challenges["0"].ID), nil
 			}
@@ -189,7 +189,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			}
 			config.GlobalConfig.Logger.Info("Username found")
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Username value: %s", usernames[0].Value))
-			isConfirmed := AskConfirmation("The following username was found : " + usernames[0].Value)
+			isConfirmed := AskConfirmation("The following username was found: " + usernames[0].Value)
 			if isConfirmed {
 				return fmt.Sprint(usernames[0].ID), nil
 			}
@@ -208,7 +208,7 @@ func SearchItemIDByName(item string, element_type string) (string, error) {
 			}
 			config.GlobalConfig.Logger.Info("Username found")
 			config.GlobalConfig.Logger.Debug(fmt.Sprintf("Username value: %s", usernames["0"].Value))
-			isConfirmed := AskConfirmation("The following username was found : " + usernames["0"].Value)
+			isConfirmed := AskConfirmation("The following username was found: " + usernames["0"].Value)
 			if isConfirmed {
 				return fmt.Sprint(usernames["0"].ID), nil
 			}
@@ -346,7 +346,7 @@ func GetActiveMachineIP() (string, error) {
 	if info == nil {
 		return "", err
 	}
-	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Active machine informations: %v", info))
+	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Active machine information: %v", info))
 	if ipValue, ok := info.(map[string]interface{})["ip"].(string); ok {
 		return ipValue, nil
 	}
@@ -424,7 +424,7 @@ func HtbRequest(method string, urlParam string, jsonData []byte) (*http.Response
 	// Check if token is invalid or expired
 	if resp.StatusCode == 302 && strings.Contains(resp.Header.Get("Location"), "/login") {
 		s.Stop()
-		return nil, fmt.Errorf("HTB Token appears invalid or expired")
+		return nil, fmt.Errorf("specified token in HTB_TOKEN is invalid or expired")
 	}
 	s.Stop()
 	return resp, nil
@@ -580,7 +580,7 @@ func SearchFortressID(partialName string) (int, error) {
 
 	for _, match := range matches {
 		matchedName := names[match.Index]
-		isConfirmed := AskConfirmation("The following fortress was found : " + matchedName)
+		isConfirmed := AskConfirmation("The following fortress was found: " + matchedName)
 		if isConfirmed {
 			return namesAndIDs[matchedName], nil
 		}
@@ -626,7 +626,7 @@ func SearchEndgameID(partialName string) (int, error) {
 
 	for _, match := range matches {
 		matchedName := names[match.Index]
-		isConfirmed := AskConfirmation("The following endgame was found : " + matchedName)
+		isConfirmed := AskConfirmation("The following endgame was found: " + matchedName)
 		if isConfirmed {
 			return namesAndIDs[matchedName], nil
 		}
@@ -657,7 +657,7 @@ func SearchProlabID(partialName string) (int, error) {
 
 	for _, match := range matches {
 		matchedName := names[match.Index]
-		isConfirmed := AskConfirmation("The following prolab was found : " + matchedName)
+		isConfirmed := AskConfirmation("The following prolab was found: " + matchedName)
 		if isConfirmed {
 			return namesAndIDs[matchedName], nil
 		}
@@ -713,7 +713,7 @@ func SearchChallengeByName(partialName string) (ChallengeFinder, error) {
 
 	for _, match := range matches {
 		matchedName := challengeNames[match.Index]
-		isConfirmed := AskConfirmation("The following challenge was found : " + matchedName)
+		isConfirmed := AskConfirmation("The following challenge was found: " + matchedName)
 		if isConfirmed {
 			for _, ch := range allChallenges {
 				if ch.Name == matchedName {

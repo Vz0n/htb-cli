@@ -27,7 +27,7 @@ func Check(newVersion string) (string, error) {
 	}
 	var release GitHubRelease
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return "", fmt.Errorf("error when decoding JSON: %v", err)
+		return "", fmt.Errorf("error decoding JSON: %v", err)
 	}
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("release.TagName : %s", release.TagName))
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("config.Version : %s", config.Version))
