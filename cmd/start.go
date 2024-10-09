@@ -98,7 +98,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	}
 
 	if message == "You must wait 1 minute between machine actions." {
-		return "Please slowdown and wait 1 minute between machine actions.", nil
+		return message, nil
 	}
 
 	ip := "Undefined"
