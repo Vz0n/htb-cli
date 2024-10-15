@@ -14,7 +14,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "htb-cli",
 	Short: "CLI enhancing the HackTheBox user experience.",
-	Long:  `This software, engineered using the Go programming language, serves to streamline and automate various tasks for the HackTheBox platform, enhancing user efficiency and productivity.`,
+	Long:  `This software, created using the Go programming language, serves to streamline and automate various tasks for the HackTheBox platform, enhancing user efficiency and productivity.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		err := config.ConfigureLogger()
 		if err != nil {
