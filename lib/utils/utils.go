@@ -389,7 +389,7 @@ func HtbRequest(method string, urlParam string, jsonData []byte) (*http.Response
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: false,
 		},
 	}
 
@@ -426,6 +426,13 @@ func HtbRequest(method string, urlParam string, jsonData []byte) (*http.Response
 		s.Stop()
 		return nil, fmt.Errorf("specified token in HTB_TOKEN is invalid or expired")
 	}
+
+	// Don't continue if servers seems down
+	if resp.StatusCode == 500 {
+		s.Stop()
+		return nil, fmt.Errorf("got internal server error status code (500) from htb servers")
+	}
+
 	s.Stop()
 	return resp, nil
 }
