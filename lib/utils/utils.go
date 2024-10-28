@@ -235,6 +235,19 @@ func ParseJsonMessage(resp *http.Response, key string) interface{} {
 	return result[key]
 }
 
+// Checks if the actual release machine is from the HackTheBox seasons event.
+// Need to check some stuff after the seasons event ends, so it's subject to changes.
+func IsReleaseSeasonal() (bool, error) {
+	url := fmt.Sprintf("%s/machine/recommended/", config.BaseHackTheBoxAPIURL)
+	resp, err := HtbRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return false, err
+	}
+	card := ParseJsonMessage(resp, "card1").(map[string]interface{})
+
+	return card["typeCard"] == "seasonal", nil
+}
+
 // GetMachineType will return the machine type
 func GetMachineType(machine_id interface{}) (string, error) {
 	// Check if the machine is the latest release
@@ -336,13 +349,26 @@ func GetReleaseArenaExpiredTime() (string, error) {
 }
 
 // GetActiveMachineIP returns the ip of the active machine
-func GetActiveMachineIP() (string, error) {
-	url := fmt.Sprintf("%s/machine/active", config.BaseHackTheBoxAPIURL)
+func GetActiveMachineIP(seasonal bool) (string, error) {
+	var url string
+	/* For some reason, the root JSON node differs between the season and normal machine/active
+	endpoints so... guess it's subject to changes */
+	var field string
+
+	if seasonal {
+		url = fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
+		field = "data"
+	} else {
+		url = fmt.Sprintf("%s/machine/active", config.BaseHackTheBoxAPIURL)
+		field = "info"
+	}
+
 	resp, err := HtbRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
 	}
-	info := ParseJsonMessage(resp, "info")
+
+	info := ParseJsonMessage(resp, field)
 	if info == nil {
 		return "", err
 	}
@@ -350,7 +376,7 @@ func GetActiveMachineIP() (string, error) {
 	if ipValue, ok := info.(map[string]interface{})["ip"].(string); ok {
 		return ipValue, nil
 	}
-	return "Undefined", nil
+	return "", nil
 }
 
 // HtbRequest makes an HTTP request to the Hackthebox API
@@ -534,6 +560,7 @@ func GetCurrentUsername() string {
 }
 
 func SearchLastReleaseArenaMachine() (string, error) {
+	// TODO: Add the used endpoint for released non-seasonal machines.
 	url := fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
 	resp, err := HtbRequest(http.MethodGet, url, nil)
 	if err != nil {

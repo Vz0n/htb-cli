@@ -113,7 +113,10 @@ func fetchAndDisplayInfo(url, header string, params []string, elementType string
 			if err != nil {
 				return err
 			}
-			ip := getIPStatus(data)
+			ip, err := getMachineIP(data)
+			if err != nil {
+				return err
+			}
 			bodyData = fmt.Sprintf("%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n", data["name"], data["os"], retiredStatus, data["difficultyText"], data["stars"], ip, status, data["last_reset_time"], datetime)
 		} else if elementType == "Challenge" {
 			status := utils.SetStatus(data)
@@ -209,12 +212,26 @@ func getMachineStatus(data map[string]interface{}) string {
 	return "Yes"
 }
 
-// getIPStatus returns ip status
-func getIPStatus(data map[string]interface{}) interface{} {
-	if data["ip"] == nil {
-		return "Undefined"
+func getMachineIP(data map[string]interface{}) (string, error) {
+	isSeasonal := data["machine_mode"] != nil && data["machine_mode"].(string) == "seasonal"
+
+	if isSeasonal {
+		ip, err := utils.GetActiveMachineIP(true)
+
+		if err != nil || ip == "" {
+			return "No IP address found", err
+		}
+
+		return ip, nil
 	}
-	return data["ip"]
+
+	if data["ip"] == nil {
+		return "No IP address found", nil
+	}
+
+	ip := data["ip"].(string)
+
+	return ip, nil
 }
 
 // displayActiveMachine displays information about the active machine if one is found.
@@ -336,16 +353,10 @@ func displayActiveMachine(header string) error {
 	}
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("User subscription: %s", userSubscription))
 
-	ip := "Undefined"
+	ip, err := getMachineIP(data)
 
-	switch {
-	case machineType == "release" || userSubscription == "vip+":
-		ip, err = utils.GetActiveMachineIP()
-		if err != nil {
-			return err
-		}
-	default:
-		ip = getIPStatus(data).(string)
+	if err != nil {
+		return err
 	}
 
 	bodyData := fmt.Sprintf("%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",

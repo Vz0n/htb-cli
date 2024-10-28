@@ -105,6 +105,12 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 	startTime := time.Now()
 	switch {
 	case machineType == "release":
+		// Checks if the release is from the seasons event
+		seasonal, err := utils.IsReleaseSeasonal()
+		if err != nil {
+			return "", err
+		}
+
 		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		setupSignalHandler(s)
 		s.Suffix = " Waiting for the machine to start in order to fetch the IP address (this might take a while)."
@@ -119,11 +125,11 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 				s.Stop()
 				return "", nil
 			default:
-				ip, err = utils.GetActiveMachineIP()
+				ip, err = utils.GetActiveMachineIP(seasonal)
 				if err != nil {
 					return "", err
 				}
-				if ip != "Undefined" {
+				if ip != "" {
 					s.Stop()
 					break LoopRelease
 				}
@@ -145,11 +151,11 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 				s.Stop()
 				return "", nil
 			default:
-				ip, err = utils.GetActiveMachineIP()
+				ip, err = utils.GetActiveMachineIP(false)
 				if err != nil {
 					return "", err
 				}
-				if ip != "Undefined" {
+				if ip != "" {
 					s.Stop()
 					break Loop
 				}
@@ -167,7 +173,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 		if activeMachineData["ip"] != nil {
 			ip = activeMachineData["ip"].(string)
 		} else {
-			return "", errors.New("no ip has been returned, check status")
+			return "", errors.New("no ip has been returned, check server status")
 		}
 	}
 	tts := time.Since(startTime)
@@ -183,13 +189,14 @@ var startCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		config.GlobalConfig.Logger.Info("Start command executed")
 		machineChoosen, err := cmd.Flags().GetString("machine")
+
 		if err != nil {
 			config.GlobalConfig.Logger.Error("", zap.Error(err))
 			os.Exit(1)
 		}
 		var machineID string
 		if machineChoosen == "" {
-			config.GlobalConfig.Logger.Info("Launching the machine in release arena")
+			config.GlobalConfig.Logger.Info("Launching the latest released machine")
 			machineID, err = utils.SearchLastReleaseArenaMachine()
 			if err != nil {
 				config.GlobalConfig.Logger.Error("", zap.Error(err))
