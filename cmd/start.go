@@ -103,14 +103,9 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 
 	ip := "Undefined"
 	startTime := time.Now()
-	switch {
-	case machineType == "release":
-		// Checks if the release is from the seasons event
-		seasonal, err := utils.IsReleaseSeasonal()
-		if err != nil {
-			return "", err
-		}
 
+	switch {
+	case machineType == "release" || machineType == "seasonal":
 		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		setupSignalHandler(s)
 		s.Suffix = " Waiting for the machine to start in order to fetch the IP address (this might take a while)."
@@ -125,7 +120,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 				s.Stop()
 				return "", nil
 			default:
-				ip, err = utils.GetActiveMachineIP(seasonal)
+				ip, err = utils.GetActiveMachineIP(machineType)
 				if err != nil {
 					return "", err
 				}
@@ -151,7 +146,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 				s.Stop()
 				return "", nil
 			default:
-				ip, err = utils.GetActiveMachineIP(false)
+				ip, err = utils.GetActiveMachineIP(machineType)
 				if err != nil {
 					return "", err
 				}

@@ -213,13 +213,17 @@ func getMachineStatus(data map[string]interface{}) string {
 }
 
 func getMachineIP(data map[string]interface{}) (string, error) {
-	isSeasonal := data["machine_mode"] != nil && data["machine_mode"].(string) == "seasonal"
 
-	if isSeasonal {
-		ip, err := utils.GetActiveMachineIP(true)
+	if data["machine_mode"] != nil {
+		machine_type, err := utils.GetMachineType(fmt.Sprintf("%f", data["id"]))
+		if err != nil {
+			return "", err
+		}
+
+		ip, err := utils.GetActiveMachineIP(machine_type)
 
 		if err != nil || ip == "" {
-			return "No IP address found", err
+			return "No IP address found.", nil
 		}
 
 		return ip, nil
@@ -253,19 +257,11 @@ func displayActiveMachine(header string) error {
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Machine Type: %s", machineType))
 
 	var expiresTime string
-	switch {
-	case machineType == "release":
-		expiresTime, err = utils.GetReleaseArenaExpiredTime()
-		config.GlobalConfig.Logger.Debug(fmt.Sprintf("Expires Time: %s", expiresTime))
-		if err != nil {
-			return err
-		}
-	default:
-		expiresTime, err = utils.GetActiveExpiredTime()
-		config.GlobalConfig.Logger.Debug(fmt.Sprintf("Expires Time:: %s", expiresTime))
-		if err != nil {
-			return err
-		}
+	expiresTime, err = utils.GetActiveExpiredTime(machineType)
+	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Expires Time:: %s", expiresTime))
+
+	if err != nil {
+		return err
 	}
 
 	config.GlobalConfig.Logger.Info("Active machine found !")

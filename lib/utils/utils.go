@@ -235,21 +235,8 @@ func ParseJsonMessage(resp *http.Response, key string) interface{} {
 	return result[key]
 }
 
-// Checks if the actual release machine is from the HackTheBox seasons event.
-// Need to check some stuff after the seasons event ends, so it's subject to changes.
-func IsReleaseSeasonal() (bool, error) {
-	url := fmt.Sprintf("%s/machine/recommended/", config.BaseHackTheBoxAPIURL)
-	resp, err := HtbRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return false, err
-	}
-	card := ParseJsonMessage(resp, "card1").(map[string]interface{})
-
-	return card["typeCard"] == "seasonal", nil
-}
-
 // GetMachineType will return the machine type
-func GetMachineType(machine_id interface{}) (string, error) {
+func GetMachineType(machine_id string) (string, error) {
 	// Check if the machine is the latest release
 	url := fmt.Sprintf("%s/machine/recommended/", config.BaseHackTheBoxAPIURL)
 	resp, err := HtbRequest(http.MethodGet, url, nil)
@@ -257,8 +244,12 @@ func GetMachineType(machine_id interface{}) (string, error) {
 		return "", err
 	}
 	card := ParseJsonMessage(resp, "card1").(map[string]interface{})
-	fmachine_id, _ := strconv.ParseFloat(machine_id.(string), 64)
-	if card["id"].(float64) == fmachine_id {
+	fmachine_id, _ := strconv.ParseFloat(machine_id, 64)
+	releaseIsSelected := card["id"].(float64) == fmachine_id
+
+	if card["typeCard"] == "seasonal" && releaseIsSelected {
+		return "seasonal", nil
+	} else if releaseIsSelected {
 		return "release", nil
 	}
 
@@ -313,8 +304,15 @@ func GetActiveMachineID() (string, error) {
 }
 
 // GetActiveExpiredTime returns the expired date of the active machine
-func GetActiveExpiredTime() (string, error) {
-	url := fmt.Sprintf("%s/machine/active", config.BaseHackTheBoxAPIURL)
+func GetActiveExpiredTime(machine_type string) (string, error) {
+	var url string
+
+	if machine_type == "seasonal" {
+		url = fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
+	} else {
+		url = fmt.Sprintf("%s/machine/active", config.BaseHackTheBoxAPIURL)
+	}
+
 	resp, err := HtbRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
@@ -326,36 +324,14 @@ func GetActiveExpiredTime() (string, error) {
 	return fmt.Sprintf("%s", info.(map[string]interface{})["expires_at"]), nil
 }
 
-func GetReleaseArenaExpiredTime() (string, error) {
-	url := fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
-	resp, err := HtbRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return "", err
-	}
-	info := ParseJsonMessage(resp, "data")
-	if info == nil {
-		return "", nil
-	}
-	data := info.(map[string]interface{})
-	playInfo := data["play_info"].(map[string]interface{})
-
-	if playInfo["expires_at"] == nil {
-		// Just return the actual date if there is no expiry time, will be threated as
-		// if it was zero.
-		return time.Now().Format("2006-01-02 15:04:05"), nil
-	} else {
-		return playInfo["expires_at"].(string), nil
-	}
-}
-
 // GetActiveMachineIP returns the ip of the active machine
-func GetActiveMachineIP(seasonal bool) (string, error) {
+func GetActiveMachineIP(machine_type string) (string, error) {
 	var url string
 	/* For some reason, the root JSON node differs between the season and normal machine/active
 	endpoints so... guess it's subject to changes */
 	var field string
 
-	if seasonal {
+	if machine_type == "seasonal" {
 		url = fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
 		field = "data"
 	} else {
@@ -560,18 +536,27 @@ func GetCurrentUsername() string {
 }
 
 func SearchLastReleaseArenaMachine() (string, error) {
-	// TODO: Add the used endpoint for released non-seasonal machines.
-	url := fmt.Sprintf("%s/season/machine/active", config.BaseHackTheBoxAPIURL)
+
+	url := fmt.Sprintf("%s/machine/recommended/", config.BaseHackTheBoxAPIURL)
 	resp, err := HtbRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
 	}
-	info := ParseJsonMessage(resp, "data")
+
+	info := ParseJsonMessage(resp, "card1")
 	if info == nil {
 		return "", err
 	}
+
+	parsedInfo := info.(map[string]interface{})
+
+	// On christimas for example, HTB doesn't release machines for some weeks.
+	if parsedInfo["retired"] == 1 {
+		return "", errors.New("there is no active release machine. specify machine name with '-m'")
+	}
+
 	config.GlobalConfig.Logger.Debug(fmt.Sprintf("Information on the last active machine: %v", info))
-	machineF64 := info.(map[string]interface{})["id"].(float64)
+	machineF64 := parsedInfo["id"].(float64)
 	machineID := int(machineF64)
 	machineIDstr := strconv.Itoa(machineID)
 	return machineIDstr, nil
