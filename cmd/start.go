@@ -97,7 +97,7 @@ func coreStartCmd(machineChoosen string, machineID string) (string, error) {
 		return "", fmt.Errorf("unexpected response format")
 	}
 
-	if message == "You must wait 1 minute between machine actions." {
+	if message != "Machine deployed to lab. Playing on the release arena server!" {
 		return message, nil
 	}
 
